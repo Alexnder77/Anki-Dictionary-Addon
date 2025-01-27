@@ -1,0 +1,17 @@
+{
+  "header_background": "#272828",
+  "selector": "#1A1A1A",
+  "header_text": "#FFFFFF",
+  "search_term": "#CCCCCC",
+  "border": "#FFFFFF",
+  "anki_button_background": "#272828",
+  "anki_button_text": "#FFFFFF",
+  "tab_hover": "#333333",
+  "current_tab_gradient_top": "#272828",
+  "current_tab_gradient_bottom": "#000000",
+  "example_highlight": "#CCCCCC",
+  "definition_background": "#FFFFFF",
+  "definition_text": "#000000",
+  "pitch_accent_color": "#FFFFFF",
+  "active_theme_name": "dark"
+}
