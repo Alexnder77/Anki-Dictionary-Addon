@@ -332,10 +332,10 @@ class MIDict(AnkiWebView):
         return html
 
     def getGoogleImages(self, term, idName):
-        imager = googleimages.Google()
+        imager = googleimages.DuckDuckGo()
         imager.setTermIdName(term, idName)
-        imager.setSearchRegion(self.config['googleSearchRegion'])
-        imager.setSafeSearch(self.config["safeSearch"])
+        #imager.setSearchRegion(self.config['googleSearchRegion'])
+        #imager.setSafeSearch(self.config["safeSearch"])
         imager.signals.resultsFound.connect(self.loadImageResults)
         imager.signals.noResults.connect(self.showGoogleForvoMessage)
         self.threadpool.start(imager)

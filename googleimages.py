@@ -7,6 +7,7 @@ import urllib
 from aqt.utils import  showInfo
 from bs4 import BeautifulSoup
 import requests
+from PyQt6.QtCore import QRunnable, QObject, pyqtSignal
 import time
 import re
 from aqt.qt import  QRunnable, QObject, pyqtSignal
@@ -255,15 +256,83 @@ countryCodes = {"Afghanistan" : "countryAF",
 "Zimbabwe": "countryZW"}
 
 class GoogleSignals(QObject):
-    resultsFound = pyqtSignal(list)
+    resultsFound = pyqtSignal(list, str)
     noResults = pyqtSignal(str)
-    finished = pyqtSignal()
+    #finished = pyqtSignal()
+
+class DuckDuckGo(QRunnable):
+    def __init__(self):
+        super(DuckDuckGo, self).__init__()
+        self.SEARCH_URL = "https://duckduckgo.com/"
+        self.API_URL = "https://duckduckgo.com/i.js"
+        self.term = None
+        self.idName = None
+        self.signals = GoogleSignals()  # Can keep same signals class
+        self.initSession()
+
+    def setTermIdName(self, term, idName):
+        self.term = term
+        self.idName = idName
+
+    def run(self):
+        try:
+            results = self.search(self.term, 10)
+            if results:
+                cleaned_urls = [url.replace('\\', '\\\\') for url in results]
+                self.signals.resultsFound.emit(cleaned_urls, self.idName)
+            else:
+                self.signals.noResults.emit(self.idName)
+        except Exception as e:
+            print(f"Search error: {str(e)}")
+            self.signals.noResults.emit(self.idName)
+
+    def initSession(self):
+        self.session = requests.session()
+        self.session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        })
+
+    def search(self, keyword, maximum, region=False):
+        try:
+            # Get search token
+            res = self.session.get(self.SEARCH_URL, params={'q': keyword})
+            token_match = re.search(r'vqd="(\d+(?:-.+)?)"', res.text)
+            
+            if not token_match:
+                return []
+
+            # Get images
+            params = {
+                'l': 'us-en',
+                'o': 'json',
+                'q': keyword,
+                'vqd': token_match.group(1),
+                'f': ',,,',
+                'p': '1'
+            }
+            
+            res = self.session.get(self.API_URL, params=params)
+            data = json.loads(res.text)
+            results = []
+
+            for result in data['results']:
+                if len(results) >= maximum:
+                    break
+                if 'image' in result:
+                    results.append(result['image'])
+
+            return results
+        
+        except Exception as e:
+                print(f"Search error: {str(e)}")
+                return []
+    
+    def getCleanedUrls(self, urls):
+        return [x.replace('\\', '\\\\') for x in urls]
+
 
 class Google(QRunnable):
-
-    
     # finished = pyqtSignal()
-
     def __init__(self):
         super(Google, self).__init__()
         self.GOOGLE_SEARCH_URL = "https://www.google.com/search"
